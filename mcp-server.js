@@ -25,7 +25,7 @@ server.tool(
         to: z.string().describe("End datetime in ISO8601 format (YYYY-MM-DDTHH:MM:SSZ)"),
         perPage: z.number().default(100).describe("Number of results per page (default: 100)"),
         logsetId: z.string().describe("Logset ID"),
-        query: z.string().optional().describe("Optional log query (can be omitted)"),
+        query: z.string().optional().describe("Optional log query (can be omitted). Typical syntax: where(\"search term\", loose)"),
     },
     async ({from, to, perPage, logsetId, query}) => {
         try {
@@ -45,6 +45,7 @@ server.tool(
                 from: fromTimestamp.toString(),
                 to: toTimestamp.toString(),
                 per_page: perPage.toString(),
+                kvp_info: "false",
             })
 
             // Only add query parameter if it's non-empty
@@ -194,7 +195,7 @@ server.tool(
         from: z.string().describe("Start datetime in ISO8601 format (YYYY-MM-DDTHH:MM:SSZ)"),
         to: z.string().describe("End datetime in ISO8601 format (YYYY-MM-DDTHH:MM:SSZ)"),
         perPage: z.number().default(100).describe("Number of results per page (default: 100)"),
-        query: z.string().optional().describe("Optional log query (can be omitted)"),
+        query: z.string().optional().describe("Optional log query (can be omitted). Typical syntax: where(\"search term\", loose)"),
     },
     async ({ logsetName, from, to, perPage, query }) => {
         try {
@@ -215,6 +216,7 @@ server.tool(
                 from: fromTimestamp.toString(),
                 to: toTimestamp.toString(),
                 per_page: perPage.toString(),
+                kvp_info: "false",
             })
 
             // Only add query parameter if it's non-empty
