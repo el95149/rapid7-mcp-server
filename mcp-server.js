@@ -4,8 +4,9 @@ import {z} from "zod"
 import fetch from "node-fetch"
 
 
-// Read API key from environment variable
+// Read environment variables
 const API_KEY = process.env.RAPID7_API_KEY
+const BASE_URL = process.env.RAPID7_BASE_URL || "https://eu.rest.logs.insight.rapid7.com"
 
 if (!API_KEY) {
     throw new Error("Environment variable RAPID7_API_KEY is not set. Please set it before running the server.")
@@ -38,7 +39,7 @@ server.tool(
                 throw new Error("Invalid datetime format. Please use ISO8601 format (YYYY-MM-DDTHH:MM:SSZ)")
             }
 
-            const url = `https://eu.rest.logs.insight.rapid7.com/query/logsets/${logsetId}`
+            const url = `${BASE_URL}/query/logsets/${logsetId}`
 
             // Build query parameters conditionally
             const params = new URLSearchParams({
@@ -93,7 +94,7 @@ server.tool(
     "pollRapid7Query",
     "Poll the status of a running Rapid7 log query using its query ID",
     {
-        queryId: z.string().describe("The unique ID of the query to poll (e.g., c19c7d71-de32-4a6d-92b9-58e12dc38eb9:0:c5be1c97f925ee883347440071863897b83ef305:1:94b844d409485aa4152284708bf65f4b09d931f3)"),
+        queryId: z.string().describe("The unique ID of the query to poll ( as returned by the queryRapid7Logs tool)"),
         timeRange: z.string().optional().describe("Optional time range (e.g., 'last 1 day', 'last 7 days'). If omitted, defaults to 'last 1 day'."),
         // apiKey is now read from environment variable, so it's not passed as input
     },
@@ -103,7 +104,7 @@ server.tool(
             const effectiveTimeRange = timeRange || "last 1 day"
 
             // Construct the URL with the query ID and time range
-            const url = `https://eu.rest.logs.insight.rapid7.com/query/${queryId}?time_range=${encodeURIComponent(effectiveTimeRange)}`
+            const url = `${BASE_URL}/query/${queryId}?time_range=${encodeURIComponent(effectiveTimeRange)}`
 
             const response = await fetch(url, {
                 method: "GET",
