@@ -82,5 +82,58 @@ server.tool(
     }
 )
 
+server.tool(
+    "pollRapid7Query",
+    "Poll the status of a running Rapid7 log query using its query ID",
+    {
+        apiKey: z.string().describe("API key for authentication"),
+        queryId: z.string().describe("The unique ID of the query to poll (e.g., c19c7d71-de32-4a6d-92b9-58e12dc38eb9:0:c5be1c97f925ee883347440071863897b83ef305:1:94b844d409485aa4152284708bf65f4b09d931f3)"),
+        timeRange: z.string().optional().describe("Optional time range (e.g., 'last 1 day', 'last 7 days'). If omitted, defaults to 'last 1 day'."),
+    },
+    async ({apiKey, queryId, timeRange}) => {
+        try {
+            // Default time range if not provided
+            const effectiveTimeRange = timeRange || "last 1 day"
+
+            // Construct the URL with the query ID and time range
+            const url = `https://eu.rest.logs.insight.rapid7.com/query/${queryId}?time_range=${encodeURIComponent(effectiveTimeRange)}`
+
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "x-api-key": apiKey,
+                },
+            })
+
+            // Check if response is ok
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+            }
+
+            // Check content type
+            const contentType = response.headers.get("content-type")
+            if (!contentType || !contentType.includes("application/json")) {
+                const text = await response.text()
+                throw new Error(`Unexpected response format: ${text}`)
+            }
+
+            const data = await response.json()
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify(data, null, 2),
+                        mimeType: "application/json"
+                    }
+                ]
+            }
+        } catch (error) {
+            return {
+                content: [{type: "text", text: `Error: ${error.message}`}],
+            }
+        }
+    }
+)
+
 const transport = new StdioServerTransport()
 await server.connect(transport)
