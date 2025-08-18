@@ -18,15 +18,14 @@ const server = new McpServer({
 })
 
 server.tool(
-    "queryRapid7Logs",
-    "Query Rapid7 logs with specified parameters",
+    "queryRapid7Logset",
+    "Query Rapid7 logs with specified parameters for an entire log set",
     {
         from: z.string().describe("Start datetime in ISO8601 format (YYYY-MM-DDTHH:MM:SSZ)"),
         to: z.string().describe("End datetime in ISO8601 format (YYYY-MM-DDTHH:MM:SSZ)"),
         perPage: z.number().default(100).describe("Number of results per page (default: 100)"),
         logsetId: z.string().describe("Logset ID"),
         query: z.string().optional().describe("Optional log query (can be omitted)"),
-        // apiKey is now read from environment variable, so it's not passed as input
     },
     async ({from, to, perPage, logsetId, query}) => {
         try {
@@ -45,7 +44,7 @@ server.tool(
             const params = new URLSearchParams({
                 from: fromTimestamp.toString(),
                 to: toTimestamp.toString(),
-                per_page: perPage.toString(), // Use the provided or default value
+                per_page: perPage.toString(),
             })
 
             // Only add query parameter if it's non-empty
@@ -56,7 +55,7 @@ server.tool(
             const response = await fetch(`${url}?${params}`, {
                 method: "GET",
                 headers: {
-                    "x-api-key": API_KEY, // Use environment variable
+                    "x-api-key": API_KEY,
                 },
             })
 
@@ -96,7 +95,6 @@ server.tool(
     {
         queryId: z.string().describe("The unique ID of the query to poll (as returned by the queryRapid7Logs tool)"),
         timeRange: z.string().optional().describe("Optional time range (e.g., 'last 1 day', 'last 7 days'). If omitted, defaults to 'last 1 day'."),
-        // apiKey is now read from environment variable, so it's not passed as input
     },
     async ({queryId, timeRange}) => {
         try {
@@ -109,7 +107,52 @@ server.tool(
             const response = await fetch(url, {
                 method: "GET",
                 headers: {
-                    "x-api-key": API_KEY, // Use environment variable
+                    "x-api-key": API_KEY,
+                },
+            })
+
+            // Check if response is ok
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+            }
+
+            // Check content type
+            const contentType = response.headers.get("content-type")
+            if (!contentType || !contentType.includes("application/json")) {
+                const text = await response.text()
+                throw new Error(`Unexpected response format: ${text}`)
+            }
+
+            const data = await response.json()
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify(data, null, 2),
+                        mimeType: "application/json"
+                    }
+                ]
+            }
+        } catch (error) {
+            return {
+                content: [{type: "text", text: `Error: ${error.message}`}],
+            }
+        }
+    }
+)
+
+server.tool(
+    "listRapid7Logsets",
+    "List all available Rapid7 logs sets",
+    {},
+    async () => {
+        try {
+            const url = `${BASE_URL}/management/logsets`
+
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "x-api-key": API_KEY,
                 },
             })
 
