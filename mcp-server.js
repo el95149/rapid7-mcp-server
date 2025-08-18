@@ -23,7 +23,7 @@ server.tool(
     {
         from: z.string().describe("Start datetime in ISO8601 format (YYYY-MM-DDTHH:MM:SSZ)"),
         to: z.string().describe("End datetime in ISO8601 format (YYYY-MM-DDTHH:MM:SSZ)"),
-        perPage: z.number().describe("Number of results per page"),
+        perPage: z.number().default(100).describe("Number of results per page (default: 100)"),
         logsetId: z.string().describe("Logset ID"),
         query: z.string().optional().describe("Optional log query (can be omitted)"),
         // apiKey is now read from environment variable, so it's not passed as input
@@ -45,7 +45,7 @@ server.tool(
             const params = new URLSearchParams({
                 from: fromTimestamp.toString(),
                 to: toTimestamp.toString(),
-                per_page: perPage.toString(),
+                per_page: perPage.toString(), // Use the provided or default value
             })
 
             // Only add query parameter if it's non-empty
@@ -94,7 +94,7 @@ server.tool(
     "pollRapid7Query",
     "Poll the status of a running Rapid7 log query using its query ID",
     {
-        queryId: z.string().describe("The unique ID of the query to poll ( as returned by the queryRapid7Logs tool)"),
+        queryId: z.string().describe("The unique ID of the query to poll (as returned by the queryRapid7Logs tool)"),
         timeRange: z.string().optional().describe("Optional time range (e.g., 'last 1 day', 'last 7 days'). If omitted, defaults to 'last 1 day'."),
         // apiKey is now read from environment variable, so it's not passed as input
     },
