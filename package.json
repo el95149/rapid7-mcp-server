@@ -1,5 +1,11 @@
 {
+  "name": "rapid7-mcp-server",
+  "version": "1.0.0",
   "type": "module",
+  "main": "mcp-server.js",
+  "bin": {
+    "mcp-server": "bin/mcp-server.js"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.7.0",
     "node-fetch": "^3.3.2",
