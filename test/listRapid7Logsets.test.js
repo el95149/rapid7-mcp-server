@@ -1,6 +1,13 @@
 import {expect} from 'chai';
 import {jest} from '@jest/globals';
 
+const mockApiKey = 'testKey';
+const mockBaseUrl = 'https://eu.rest.logs.insight.rapid7.com';
+
+// Set environment variables
+process.env.RAPID7_API_KEY = mockApiKey;
+process.env.RAPID7_BASE_URL = mockBaseUrl;
+
 // Set up the mock before importing the module under test
 jest.unstable_mockModule('node-fetch', () => ({
     default: jest.fn()
@@ -11,14 +18,8 @@ const {listRapid7Logsets} = await import('../mcp-server.js');
 const {default: fetch} = await import('node-fetch');
 
 describe('listRapid7Logsets', () => {
-    const mockApiKey = 'testKey';
-    const mockBaseUrl = 'https://eu.rest.logs.insight.rapid7.com';
 
     beforeEach(() => {
-        // Set environment variables
-        process.env.RAPID7_API_KEY = mockApiKey;
-        process.env.RAPID7_BASE_URL = mockBaseUrl;
-
         // Set up default successful mock
         fetch.mockResolvedValue({
             ok: true,
