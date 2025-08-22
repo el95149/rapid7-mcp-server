@@ -17,6 +17,217 @@ const server = new McpServer({
     version: "1.0.0",
 })
 
+// Extract tool handlers as separate functions for testing
+export const queryRapid7Logset = async ({from, to, perPage, logsetId, query}) => {
+    try {
+        // Convert ISO8601 datetime strings to UNIX timestamps (milliseconds)
+        const fromTimestamp = new Date(from).getTime()
+        const toTimestamp = new Date(to).getTime()
+
+        // Validate the conversion
+        if (isNaN(fromTimestamp) || isNaN(toTimestamp)) {
+            throw new Error("Invalid datetime format. Please use ISO8601 format (YYYY-MM-DDTHH:MM:SSZ)")
+        }
+
+        const url = `${BASE_URL}/query/logsets/${logsetId}`
+
+        // Build query parameters conditionally
+        const params = new URLSearchParams({
+            from: fromTimestamp.toString(),
+            to: toTimestamp.toString(),
+            per_page: perPage.toString(),
+            kvp_info: "false",
+        })
+
+        // Only add query parameter if it's non-empty
+        if (query && query.trim()) {
+            params.append('query', query)
+        }
+
+        const response = await fetch(`${url}?${params}`, {
+            method: "GET",
+            headers: {
+                "x-api-key": API_KEY,
+            },
+        })
+
+        // Check if response is ok
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+        }
+
+        // Check content type
+        const contentType = response.headers.get("content-type")
+        if (!contentType || !contentType.includes("application/json")) {
+            const text = await response.text()
+            throw new Error(`Unexpected response format: ${text}`)
+        }
+
+        const data = await response.json()
+        return {
+            content: [
+                {
+                    type: "text",
+                    text: JSON.stringify(data, null, 2),
+                    mimeType: "application/json"
+                }
+            ]
+        }
+    } catch (error) {
+        return {
+            content: [{type: "text", text: `Error: ${error.message}`}],
+        }
+    }
+}
+
+export const pollRapid7Query = async ({queryId, timeRange}) => {
+    try {
+        // Default time range if not provided
+        const effectiveTimeRange = timeRange || "last 1 day"
+
+        // Construct the URL with the query ID and time range
+        const url = `${BASE_URL}/query/${queryId}?time_range=${encodeURIComponent(effectiveTimeRange)}`
+
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "x-api-key": API_KEY,
+            },
+        })
+
+        // Check if response is ok
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+        }
+
+        // Check content type
+        const contentType = response.headers.get("content-type")
+        if (!contentType || !contentType.includes("application/json")) {
+            const text = await response.text()
+            throw new Error(`Unexpected response format: ${text}`)
+        }
+
+        const data = await response.json()
+        return {
+            content: [
+                {
+                    type: "text",
+                    text: JSON.stringify(data, null, 2),
+                    mimeType: "application/json"
+                }
+            ]
+        }
+    } catch (error) {
+        return {
+            content: [{type: "text", text: `Error: ${error.message}`}],
+        }
+    }
+}
+
+export const listRapid7Logsets = async () => {
+    try {
+        const url = `${BASE_URL}/management/logsets`
+
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "x-api-key": API_KEY,
+            },
+        })
+
+        // Check if response is ok
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+        }
+
+        // Check content type
+        const contentType = response.headers.get("content-type")
+        if (!contentType || !contentType.includes("application/json")) {
+            const text = await response.text()
+            throw new Error(`Unexpected response format: ${text}`)
+        }
+
+        const data = await response.json()
+        return {
+            content: [
+                {
+                    type: "text",
+                    text: JSON.stringify(data, null, 2),
+                    mimeType: "application/json"
+                }
+            ]
+        }
+    } catch (error) {
+        return {
+            content: [{type: "text", text: `Error: ${error.message}`}],
+        }
+    }
+}
+
+export const queryRapid7LogsetByName = async ({ logsetName, from, to, perPage, query }) => {
+    try {
+        // Convert ISO8601 datetime strings to UNIX timestamps (milliseconds)
+        const fromTimestamp = new Date(from).getTime()
+        const toTimestamp = new Date(to).getTime()
+
+        // Validate the conversion
+        if (isNaN(fromTimestamp) || isNaN(toTimestamp)) {
+            throw new Error("Invalid datetime format. Please use ISO8601 format (YYYY-MM-DDTHH:MM:SSZ)")
+        }
+
+        const url = `${BASE_URL}/query/logsets`
+
+        // Build query parameters
+        const params = new URLSearchParams({
+            logset_name: logsetName,
+            from: fromTimestamp.toString(),
+            to: toTimestamp.toString(),
+            per_page: perPage.toString(),
+            kvp_info: "false",
+        })
+
+        // Only add query parameter if it's non-empty
+        if (query && query.trim()) {
+            params.append('query', query)
+        }
+
+        const response = await fetch(`${url}?${params}`, {
+            method: "GET",
+            headers: {
+                "x-api-key": API_KEY,
+            },
+        })
+
+        // Check if response is ok
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+        }
+
+        // Check content type
+        const contentType = response.headers.get("content-type")
+        if (!contentType || !contentType.includes("application/json")) {
+            const text = await response.text()
+            throw new Error(`Unexpected response format: ${text}`)
+        }
+
+        const data = await response.json()
+        return {
+            content: [
+                {
+                    type: "text",
+                    text: JSON.stringify(data, null, 2),
+                    mimeType: "application/json"
+                }
+            ]
+        }
+    } catch (error) {
+        return {
+            content: [{ type: "text", text: `Error: ${error.message}` }],
+        }
+    }
+}
+
+// Register tools with the server using the exported functions
 server.tool(
     "queryRapid7Logset",
     "Query Rapid7 logs with specified parameters for an entire log set",
@@ -27,67 +238,7 @@ server.tool(
         logsetId: z.string().describe("Logset ID"),
         query: z.string().optional().describe("Optional log query (can be omitted). Typical syntax: where(\"search term\", loose)"),
     },
-    async ({from, to, perPage, logsetId, query}) => {
-        try {
-            // Convert ISO8601 datetime strings to UNIX timestamps (milliseconds)
-            const fromTimestamp = new Date(from).getTime()
-            const toTimestamp = new Date(to).getTime()
-
-            // Validate the conversion
-            if (isNaN(fromTimestamp) || isNaN(toTimestamp)) {
-                throw new Error("Invalid datetime format. Please use ISO8601 format (YYYY-MM-DDTHH:MM:SSZ)")
-            }
-
-            const url = `${BASE_URL}/query/logsets/${logsetId}`
-
-            // Build query parameters conditionally
-            const params = new URLSearchParams({
-                from: fromTimestamp.toString(),
-                to: toTimestamp.toString(),
-                per_page: perPage.toString(),
-                kvp_info: "false",
-            })
-
-            // Only add query parameter if it's non-empty
-            if (query && query.trim()) {
-                params.append('query', query)
-            }
-
-            const response = await fetch(`${url}?${params}`, {
-                method: "GET",
-                headers: {
-                    "x-api-key": API_KEY,
-                },
-            })
-
-            // Check if response is ok
-            if (!response.ok) {
-                throw new Error(`API request failed: ${response.status} ${response.statusText}`)
-            }
-
-            // Check content type
-            const contentType = response.headers.get("content-type")
-            if (!contentType || !contentType.includes("application/json")) {
-                const text = await response.text()
-                throw new Error(`Unexpected response format: ${text}`)
-            }
-
-            const data = await response.json()
-            return {
-                content: [
-                    {
-                        type: "text",
-                        text: JSON.stringify(data, null, 2),
-                        mimeType: "application/json"
-                    }
-                ]
-            }
-        } catch (error) {
-            return {
-                content: [{type: "text", text: `Error: ${error.message}`}],
-            }
-        }
-    }
+    queryRapid7Logset
 )
 
 server.tool(
@@ -97,94 +248,14 @@ server.tool(
         queryId: z.string().describe("The unique ID of the query to poll (as returned by the queryRapid7Logs tool)"),
         timeRange: z.string().optional().describe("Optional time range (e.g., 'last 1 day', 'last 7 days'). If omitted, defaults to 'last 1 day'."),
     },
-    async ({queryId, timeRange}) => {
-        try {
-            // Default time range if not provided
-            const effectiveTimeRange = timeRange || "last 1 day"
-
-            // Construct the URL with the query ID and time range
-            const url = `${BASE_URL}/query/${queryId}?time_range=${encodeURIComponent(effectiveTimeRange)}`
-
-            const response = await fetch(url, {
-                method: "GET",
-                headers: {
-                    "x-api-key": API_KEY,
-                },
-            })
-
-            // Check if response is ok
-            if (!response.ok) {
-                throw new Error(`API request failed: ${response.status} ${response.statusText}`)
-            }
-
-            // Check content type
-            const contentType = response.headers.get("content-type")
-            if (!contentType || !contentType.includes("application/json")) {
-                const text = await response.text()
-                throw new Error(`Unexpected response format: ${text}`)
-            }
-
-            const data = await response.json()
-            return {
-                content: [
-                    {
-                        type: "text",
-                        text: JSON.stringify(data, null, 2),
-                        mimeType: "application/json"
-                    }
-                ]
-            }
-        } catch (error) {
-            return {
-                content: [{type: "text", text: `Error: ${error.message}`}],
-            }
-        }
-    }
+    pollRapid7Query
 )
 
 server.tool(
     "listRapid7Logsets",
     "List all available Rapid7 logs sets",
     {},
-    async () => {
-        try {
-            const url = `${BASE_URL}/management/logsets`
-
-            const response = await fetch(url, {
-                method: "GET",
-                headers: {
-                    "x-api-key": API_KEY,
-                },
-            })
-
-            // Check if response is ok
-            if (!response.ok) {
-                throw new Error(`API request failed: ${response.status} ${response.statusText}`)
-            }
-
-            // Check content type
-            const contentType = response.headers.get("content-type")
-            if (!contentType || !contentType.includes("application/json")) {
-                const text = await response.text()
-                throw new Error(`Unexpected response format: ${text}`)
-            }
-
-            const data = await response.json()
-            return {
-                content: [
-                    {
-                        type: "text",
-                        text: JSON.stringify(data, null, 2),
-                        mimeType: "application/json"
-                    }
-                ]
-            }
-        } catch (error) {
-            return {
-                content: [{type: "text", text: `Error: ${error.message}`}],
-            }
-        }
-    }
+    listRapid7Logsets
 )
 
 server.tool(
@@ -197,68 +268,7 @@ server.tool(
         perPage: z.number().default(100).describe("Number of results per page (default: 100)"),
         query: z.string().optional().describe("Optional log query (can be omitted). Typical syntax: where(\"search term\", loose)"),
     },
-    async ({ logsetName, from, to, perPage, query }) => {
-        try {
-            // Convert ISO8601 datetime strings to UNIX timestamps (milliseconds)
-            const fromTimestamp = new Date(from).getTime()
-            const toTimestamp = new Date(to).getTime()
-
-            // Validate the conversion
-            if (isNaN(fromTimestamp) || isNaN(toTimestamp)) {
-                throw new Error("Invalid datetime format. Please use ISO8601 format (YYYY-MM-DDTHH:MM:SSZ)")
-            }
-
-            const url = `${BASE_URL}/query/logsets`
-
-            // Build query parameters
-            const params = new URLSearchParams({
-                logset_name: logsetName,
-                from: fromTimestamp.toString(),
-                to: toTimestamp.toString(),
-                per_page: perPage.toString(),
-                kvp_info: "false",
-            })
-
-            // Only add query parameter if it's non-empty
-            if (query && query.trim()) {
-                params.append('query', query)
-            }
-
-            const response = await fetch(`${url}?${params}`, {
-                method: "GET",
-                headers: {
-                    "x-api-key": API_KEY,
-                },
-            })
-
-            // Check if response is ok
-            if (!response.ok) {
-                throw new Error(`API request failed: ${response.status} ${response.statusText}`)
-            }
-
-            // Check content type
-            const contentType = response.headers.get("content-type")
-            if (!contentType || !contentType.includes("application/json")) {
-                const text = await response.text()
-                throw new Error(`Unexpected response format: ${text}`)
-            }
-
-            const data = await response.json()
-            return {
-                content: [
-                    {
-                        type: "text",
-                        text: JSON.stringify(data, null, 2),
-                        mimeType: "application/json"
-                    }
-                ]
-            }
-        } catch (error) {
-            return {
-                content: [{ type: "text", text: `Error: ${error.message}` }],
-            }
-        }
-    }
+    queryRapid7LogsetByName
 )
 
 const transport = new StdioServerTransport()
