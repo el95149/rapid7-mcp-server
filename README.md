@@ -18,6 +18,15 @@ A Model Context Protocol (MCP) server that provides access to Rapid7 InsightIDR 
    npm install
    ```
 
+## Testing (TLDR)
+
+```bash
+# Run all tests
+npm test
+```
+
+Tests use mocked API calls - no real API keys needed.
+
 ## Configuration
 
 You'll need:
@@ -122,4 +131,3 @@ For issues related to:
 - This MCP server: Create an issue in this repository
 - Rapid7 InsightIDR API: Consult the [Rapid7 API documentation](https://docs.rapid7.com/insightidr/api/)
 - MCP protocol: Check the [Model Context Protocol documentation](https://modelcontextprotocol.io/)
-
