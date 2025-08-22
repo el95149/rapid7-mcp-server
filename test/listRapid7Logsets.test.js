@@ -132,6 +132,24 @@ describe('listRapid7Logsets', () => {
         expect(parsedData).to.deep.equal({});
     });
 
+    it('should return error content when RAPID7_API_KEY is missing', async () => {
+        // Clear the API key environment variable
+        delete process.env.RAPID7_API_KEY;
+
+        // Reset the module to re-import with missing API key
+        jest.resetModules();
+
+        // Re-import the module after clearing the env
+        const {listRapid7Logsets} = await import('../mcp-server.js');
+
+        const result = await listRapid7Logsets();
+
+        expect(result).to.have.property('content').that.is.an('array').with.lengthOf(1);
+        const contentItem = result.content[0];
+        expect(contentItem).to.have.property('type', 'text');
+        expect(contentItem.text).to.include('Environment variable RAPID7_API_KEY is not set');
+    });
+
     it('should return error content when fetch fails (network error)', async () => {
         fetch.mockRejectedValue(new Error('Network error'));
 
