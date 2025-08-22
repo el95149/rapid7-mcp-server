@@ -12,6 +12,12 @@
     "zod": "^3.24.2"
   },
   "scripts": {
+    "test": "node --experimental-vm-modules  node_modules/.bin/jest --detectOpenHandles --forceExit",
     "inspector": "npx @modelcontextprotocol/inspector node ./mcp-server.js"
+  },
+  "devDependencies": {
+    "chai": "^6.0.0",
+    "jest": "^30.0.5",
+    "sinon": "^21.0.0"
   }
 }
