@@ -8,17 +8,31 @@ import fetch from "node-fetch"
 const API_KEY = process.env.RAPID7_API_KEY
 const BASE_URL = process.env.RAPID7_BASE_URL || "https://eu.rest.logs.insight.rapid7.com"
 
-if (!API_KEY) {
-    throw new Error("Environment variable RAPID7_API_KEY is not set. Please set it before running the server.")
-}
-
 const server = new McpServer({
     name: "MCP Server Boilerplate",
     version: "1.0.0",
 })
 
+// Helper function to check if API key is present
+const requireApiKey = () => {
+    if (!API_KEY) {
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: 'Environment variable RAPID7_API_KEY is not set. Please set it before running the server.'
+                }
+            ]
+        };
+    }
+}
+
 // Extract tool handlers as separate functions for testing
 export const queryRapid7Logset = async ({from, to, perPage, logsetId, query}) => {
+    // Check for API key upfront
+    const apiKeyCheck = requireApiKey()
+    if (apiKeyCheck) return apiKeyCheck
+
     try {
         // Convert ISO8601 datetime strings to UNIX timestamps (milliseconds)
         const fromTimestamp = new Date(from).getTime()
@@ -81,6 +95,10 @@ export const queryRapid7Logset = async ({from, to, perPage, logsetId, query}) =>
 }
 
 export const pollRapid7Query = async ({queryId, timeRange}) => {
+    // Check for API key upfront
+    const apiKeyCheck = requireApiKey()
+    if (apiKeyCheck) return apiKeyCheck
+
     try {
         // Default time range if not provided
         const effectiveTimeRange = timeRange || "last 1 day"
@@ -125,6 +143,10 @@ export const pollRapid7Query = async ({queryId, timeRange}) => {
 }
 
 export const listRapid7Logsets = async () => {
+    // Check for API key upfront
+    const apiKeyCheck = requireApiKey()
+    if (apiKeyCheck) return apiKeyCheck
+
     try {
         const url = `${BASE_URL}/management/logsets`
 
@@ -165,6 +187,10 @@ export const listRapid7Logsets = async () => {
 }
 
 export const queryRapid7LogsetByName = async ({ logsetName, from, to, perPage, query }) => {
+    // Check for API key upfront
+    const apiKeyCheck = requireApiKey()
+    if (apiKeyCheck) return apiKeyCheck
+
     try {
         // Convert ISO8601 datetime strings to UNIX timestamps (milliseconds)
         const fromTimestamp = new Date(from).getTime()
